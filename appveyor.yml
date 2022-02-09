@@ -1,3 +1,6 @@
 image: Ubuntu
 
-- sh: printf "Hello from Ubuntu"
+install:
+  - sh: printf "Hello from Ubuntu"
+
+build: off
