@@ -1,31 +1,43 @@
 version: 2.1
 
-commands:
-  setup-linux-packages:
-    steps:
-      - run:
-        name: "Installing base packages"
-        command: |
-          apt update
-          apt install -y cmake libvulkan-dev
-
 jobs:
-  linux:
-    executor: ubuntu-16_04
+  build-linux:
+    docker:
+      - image: cimg/base:2022.01
     steps:
       - checkout
-      - setup-linux-packages
+
+      # Install base packages : CMake, Vulkan
       - run:
-        name: Create build directory
-        command: mkdir -p build
+          name: Install base packages
+          command: |
+            apt update
+            apt install -y cmake libvulkan-dev
+            
+      # Use GCC 11
+      - run:
+          name: Setup compiler
+          command: |
+            apt install -y g++-11
+            echo 'export CC=gcc-11' >> $BASH_ENV
+            echo 'export CXX=g++-11' >> $BASH_ENV
+
+      - run:
+          name: Create build directory
+          command: mkdir -p build
         
       - run:
-        name: Setup cmake
-        command: |
-          cd build
-          cmake ..
+          name: Setup CMake
+          command: |
+            cd build
+            cmake ..
+
+      - run:
+          name: Make
+          command: |
+            make
 
 workflows:
   build-workflow:
     jobs:
-      - build
+      - build-linux
