@@ -4,38 +4,32 @@ jobs:
   build-linux:
     docker:
       - image: cimg/base:2022.01
+      
     steps:
       - checkout
 
-      # Install base packages : CMake, Vulkan
       - run:
-          name: Install base packages
-          command: |
-            apt update
-            apt install -y cmake libvulkan-dev
-            
-      # Use GCC 11
+          name: Install CMake
+          command: sudo apt update && sudo apt install -y cmake
+
       - run:
-          name: Setup compiler
+          name: Install Vulkan
+          command: sudo apt-get update && sudo apt-get install -y libvulkan-dev
+
+      - run:
+          name: Setup GCC 11
           command: |
-            apt install -y g++-11
+            sudo apt install -y gcc-11 g++-11
             echo 'export CC=gcc-11' >> $BASH_ENV
             echo 'export CXX=g++-11' >> $BASH_ENV
 
       - run:
-          name: Create build directory
-          command: mkdir -p build
-        
-      - run:
           name: Setup CMake
-          command: |
-            cd build
-            cmake ..
+          command: cmake -Bbuild
 
       - run:
-          name: Make
-          command: |
-            make
+          name: Start Build
+          command: cmake --build build
 
 workflows:
   build-workflow:
