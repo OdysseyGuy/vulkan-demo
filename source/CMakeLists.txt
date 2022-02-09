@@ -9,6 +9,7 @@ add_executable( vulkan-demo
   VulkanPipeline.cpp
   VulkanRHI.cpp
   VulkanCommandBuffer.cpp
+  VulkanResources.cpp
 )
 
 #----------------------------------
