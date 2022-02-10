@@ -3,18 +3,22 @@ version: 2.1
 jobs:
   build-linux:
     docker:
-      - image: cimg/base:2022.01
+      - image: cimg/base:2022.01 # Base Ubuntu image
 
     steps:
       - checkout
 
       - run:
           name: Install CMake
-          command: sudo apt update && sudo apt install -y cmake
+          command: |
+          sudo apt update
+          sudo apt install -y cmake
 
       - run:
           name: Install Vulkan
-          command: sudo apt-get update && sudo apt-get install -y libvulkan-dev
+          command: |
+          sudo apt-get update
+          sudo apt-get install -y libvulkan-dev
 
       - run:
           name: Setup GCC 11
@@ -25,12 +29,12 @@ jobs:
             echo 'export CXX=g++-11' >> $BASH_ENV
 
       - run:
-          name: Setup CMake
-          command: cmake -Bbuild
+          name: Setup Build Files
+          command: cmake -BBuild
 
       - run:
           name: Start Build
-          command: cmake --build build
+          command: cmake --build Build
 
 workflows:
   build-workflow:

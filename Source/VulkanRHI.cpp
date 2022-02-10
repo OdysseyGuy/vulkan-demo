@@ -2,12 +2,16 @@
 #include "VulkanRHI.h"
 #include "VulkanDevice.h"
 
-#include <vector>
-#include <vulkan/vulkan.h>
+#include <stdio.h>
 
 VulkanRHI::VulkanRHI()
     : Instance(VK_NULL_HANDLE)
 {
+}
+
+void VulkanRHI::Init() {
+    CreateInstance();
+    PickAndInitDevice();
 }
 
 void VulkanRHI::CreateInstance() {
@@ -34,23 +38,39 @@ void VulkanRHI::CreateInstance() {
         .ppEnabledExtensionNames = InstanceExtensions.data(),
     };
 
-    vkCreateInstance(&InstanceCreateInfo, nullptr, &Instance);
+    VK_CALL(vkCreateInstance(&InstanceCreateInfo, nullptr, &Instance));
 }
 
-void VulkanRHI::PickAndInitGpu() {
+void VulkanRHI::PickAndInitDevice() {
     uint32_t AvailableGpuCount = 0;
     VK_CALL(vkEnumeratePhysicalDevices(Instance, &AvailableGpuCount, nullptr));
 
     std::vector<VkPhysicalDevice> AvailableGpus(AvailableGpuCount);
     VK_CALL(vkEnumeratePhysicalDevices(Instance, &AvailableGpuCount, AvailableGpus.data()));
 
-    // for now just pick the first available device
-    Device = new VulkanDevice(AvailableGpus[0]);
+    for (auto CurrGpu: AvailableGpus) {
+        VulkanDevice* CurrDevice = new VulkanDevice(CurrGpu);
+        VkPhysicalDeviceType Type = CurrDevice->GetGpuProps().deviceType;
+        
+        // Select the first Discrete GPU
+        if (Type == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            Device = CurrDevice;
+            break;
+        }
+    }
 
     Device->CreateDevice();
 }
 
 void VulkanRHI::Shutdown() {
+    assert(Device);
+    
+    Device->WaitUntilIdle(); /* wait for idle state before deletion */
     Device->Destroy();
+
+    delete Device;
+    Device = nullptr;
+
     vkDestroyInstance(Instance, nullptr);
+    Instance = VK_NULL_HANDLE;
 }

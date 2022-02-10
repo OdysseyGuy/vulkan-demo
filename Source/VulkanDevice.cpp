@@ -1,14 +1,15 @@
 #include "VulkanDevice.h"
 #include "VulkanCore.h"
+#include "VulkanDescriptorSet.h"
 
 VulkanDevice::VulkanDevice(VkPhysicalDevice InGpu)
     : Device(VK_NULL_HANDLE)
     , Gpu(InGpu)
 {
+    vkGetPhysicalDeviceProperties(Gpu, &GpuProps);
 }
 
 VulkanDevice::~VulkanDevice() {
-    // clean up memory
     if (Device != VK_NULL_HANDLE) {
         Destroy();
         Device = VK_NULL_HANDLE;
@@ -16,7 +17,6 @@ VulkanDevice::~VulkanDevice() {
 }
 
 void VulkanDevice::CreateDevice() {
-    vkGetPhysicalDeviceProperties(Gpu, &GpuProps);
     // Memory properties
     vkGetPhysicalDeviceMemoryProperties(Gpu, &GpuMemoryProps);
 
@@ -34,7 +34,7 @@ void VulkanDevice::CreateDevice() {
 
     uint32_t TotalQueueCount = 0;
 
-    for (int32_t FamilyIndex = 0; FamilyIndex < QueueFamilyProperties.size(); ++FamilyIndex) {
+    for (uint32_t FamilyIndex = 0; FamilyIndex < (uint32_t)QueueFamilyProperties.size(); ++FamilyIndex) {
         const VkQueueFamilyProperties& CurrProps = QueueFamilyProperties[FamilyIndex];
 
         if (QueueFamilyProperties[FamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
@@ -58,7 +58,7 @@ void VulkanDevice::CreateDevice() {
     std::vector<float> QueuePriorities(TotalQueueCount);
     float *CurrentPriority = QueuePriorities.data();
 
-    for (int32_t Index = 0; Index < QueueCreateInfos.size(); ++Index) {
+    for (uint32_t Index = 0; Index < (uint32_t)QueueCreateInfos.size(); ++Index) {
         VkDeviceQueueCreateInfo& CreateInfo = QueueCreateInfos[Index];
         CreateInfo.pQueuePriorities = CurrentPriority;
         
@@ -66,8 +66,8 @@ void VulkanDevice::CreateDevice() {
         
         /* set all of them to 1.0f */
         for (
-            int32_t CurrentQueueIndex = 0;
-            CurrentQueueIndex < CurrProps.queueCount;
+            uint32_t CurrentQueueIndex = 0;
+            CurrentQueueIndex < (uint32_t)CurrProps.queueCount;
             ++CurrentQueueIndex
         ) {
             *(CurrentPriority++) = 1.0f;
@@ -77,7 +77,7 @@ void VulkanDevice::CreateDevice() {
     // Create Logical device
     VkDeviceCreateInfo DeviceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .queueCreateInfoCount = QueueCreateInfos.size(),
+        .queueCreateInfoCount = static_cast<uint32_t>(QueueCreateInfos.size()),
         .pQueueCreateInfos = QueueCreateInfos.data(),
         .enabledLayerCount = static_cast<uint32_t>(DeviceLayers.size()),
         .ppEnabledLayerNames = DeviceLayers.data(),
@@ -90,10 +90,17 @@ void VulkanDevice::CreateDevice() {
     // Get Queue Handles
     vkGetDeviceQueue(Device, GraphicsQueueFamilyIndex, 0, &GraphicsQueue);
     vkGetDeviceQueue(Device, ComputeQueueFamilyIndex, 0, &ComputeQueue);
+
+    DescriptorPool = new VulkanDescriptorPool(this, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+}
+
+void VulkanDevice::WaitUntilIdle() {
+    VK_CALL(vkDeviceWaitIdle(Device));
 }
 
 void VulkanDevice::Destroy() {
     vkDestroyDevice(Device, nullptr);
+    Device = VK_NULL_HANDLE;
 }
 
 int32_t FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties GpuMemoryProperties,

@@ -3,7 +3,7 @@
 #include <cassert>
 
 #define VK_CALL(VkFunc)             \
-    if (VK_SUCCESS == (VkFunc)) {   \
+    if (VK_SUCCESS != (VkFunc)) {   \
         assert(false);              \
     }
 

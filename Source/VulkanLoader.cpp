@@ -12,6 +12,7 @@ int LoadVulkanLibrary() {
 
     vkCreateDevice = reinterpret_cast<PFN_vkCreateDevice>(dlsym(LibHandle, "vkCreateDevice"));
     vkDestroyDevice = reinterpret_cast<PFN_vkDestroyDevice>(dlsym(LibHandle, "vkDestroyDevice"));
+    vkDeviceWaitIdle = reinterpret_cast<PFN_vkDeviceWaitIdle>(dlsym(LibHandle, "vkDeviceWaitIdle"));
 
     vkGetDeviceQueue = reinterpret_cast<PFN_vkGetDeviceQueue>(dlsym(LibHandle, "vkGetDeviceQueue"));
     
@@ -25,6 +26,9 @@ int LoadVulkanLibrary() {
     vkCreateGraphicsPipelines = reinterpret_cast<PFN_vkCreateGraphicsPipelines>(dlsym(LibHandle, "vkCreateGraphicsPipelines"));
     vkCreateComputePipelines = reinterpret_cast<PFN_vkCreateComputePipelines>(dlsym(LibHandle, "vkCreateComputePipelines"));
     vkDestroyPipeline = reinterpret_cast<PFN_vkDestroyPipeline>(dlsym(LibHandle, "vkDestroyPipeline"));
+
+    vkGetPhysicalDeviceMemoryProperties =
+        reinterpret_cast<PFN_vkGetPhysicalDeviceMemoryProperties>(dlsym(LibHandle, "vkGetPhysicalDeviceMemoryProperties"));
 
     vkGetBufferMemoryRequirements = 
         reinterpret_cast<PFN_vkGetBufferMemoryRequirements>(dlsym(LibHandle, "vkGetBufferMemoryRequirements"));
@@ -42,6 +46,12 @@ int LoadVulkanLibrary() {
     vkBeginCommandBuffer = reinterpret_cast<PFN_vkBeginCommandBuffer>(dlsym(LibHandle, "vkBeginCommandBuffer"));
     vkEndCommandBuffer = reinterpret_cast<PFN_vkEndCommandBuffer>(dlsym(LibHandle, "vkEndCommandBuffer"));
 
+    vkCreateDescriptorPool = reinterpret_cast<PFN_vkCreateDescriptorPool>(dlsym(LibHandle, "vkCreateDescriptorPool"));
+    vkDestroyDescriptorPool = reinterpret_cast<PFN_vkDestroyDescriptorPool>(dlsym(LibHandle, "vkDestroyDescriptorPool"));
+
+    vkAllocateDescriptorSets = reinterpret_cast<PFN_vkAllocateDescriptorSets>(dlsym(LibHandle, "vkAllocateDescriptorSets"));
+    vkFreeDescriptorSets = reinterpret_cast<PFN_vkFreeDescriptorSets>(dlsym(LibHandle, "vkFreeDescriptorSets"));
+
     vkCreateBuffer = reinterpret_cast<PFN_vkCreateBuffer>(dlsym(LibHandle, "vkCreateBuffer"));
     vkCreateImage = reinterpret_cast<PFN_vkCreateImage>(dlsym(LibHandle, "vkCreateImage"));
 
@@ -57,6 +67,7 @@ PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyPrope
 
 PFN_vkCreateDevice vkCreateDevice;
 PFN_vkDestroyDevice vkDestroyDevice;
+PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
 
 PFN_vkGetDeviceQueue vkGetDeviceQueue;
 
@@ -79,6 +90,12 @@ PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
 PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
 PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
 PFN_vkEndCommandBuffer vkEndCommandBuffer;
+
+PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+
+PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
+PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 
 PFN_vkCreateBuffer vkCreateBuffer;
 

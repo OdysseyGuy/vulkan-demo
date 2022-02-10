@@ -5,7 +5,7 @@
 #pragma once
 
 #include "VulkanCore.h"
-#include <vulkan/vulkan.h>
+#include "VulkanLoader.h"
 
 class VulkanDevice;
 
@@ -38,6 +38,7 @@ private:
     VkPipelineCache PipelineCache;
 };
 
+// TODO: Need to provide Descriptor Set and Descriptor Layout
 class VulkanGraphicsPipeline {
 public:
     VulkanGraphicsPipeline(VulkanDevice* InDevice);

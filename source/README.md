@@ -1,3 +1,0 @@
-# Vulkan RHI
-
-Vulkan implementation

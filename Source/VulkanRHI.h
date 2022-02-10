@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <vector>
+
+#include "VulkanLoader.h"
 
 class VulkanDevice;
 
@@ -9,12 +10,13 @@ class VulkanRHI {
 public:
     VulkanRHI();
 
+    void Init();
     void Shutdown();
 
 private:    /* functions */
     void CreateInstance();
     // Select a GPU from avaliable GPUs
-    void PickAndInitGpu();
+    void PickAndInitDevice();
 
 private:    /* variables */
     VkInstance Instance;

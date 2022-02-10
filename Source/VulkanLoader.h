@@ -17,6 +17,7 @@ extern PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFami
 // Logical Device
 extern PFN_vkCreateDevice vkCreateDevice;
 extern PFN_vkDestroyDevice vkDestroyDevice;
+extern PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
 
 // Device Queue
 extern PFN_vkGetDeviceQueue vkGetDeviceQueue;
@@ -46,6 +47,14 @@ extern PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
 extern PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
 extern PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
 extern PFN_vkEndCommandBuffer vkEndCommandBuffer;
+
+// Descriptor Pool
+extern PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
+extern PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
+
+// Descriptor Sets
+extern PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
+extern PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 
 // Buffers
 extern PFN_vkCreateBuffer vkCreateBuffer;

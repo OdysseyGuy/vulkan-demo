@@ -1,7 +1,10 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
 #include <vector>
+
+#include "VulkanLoader.h"
+
+class VulkanDescriptorPool;
 
 /**
  * Logical Device interface to interact with Physical device.
@@ -12,12 +15,14 @@ public:
     ~VulkanDevice();
 
     void CreateDevice();
+    void WaitUntilIdle();
     void Destroy();
 
     VkQueue GetGraphicsQueue() { return GraphicsQueue; }
     VkQueue GetComputeQueue() { return ComputeQueue; }
 
     VkDevice GetLogicalDeviceHandle() { return Device; }
+    VkPhysicalDeviceProperties GetGpuProps() const { return GpuProps; }
 
 private:
     // TODO: Handle allocations in a sperate class
@@ -33,6 +38,8 @@ private:    /* variables */
 
     VkQueue GraphicsQueue;
     VkQueue ComputeQueue;
+
+    VulkanDescriptorPool* DescriptorPool;
 
     std::vector<const char*> DeviceExtensions;
     std::vector<const char*> DeviceLayers;

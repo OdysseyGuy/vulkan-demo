@@ -10,6 +10,11 @@ VulkanDescriptorPool::VulkanDescriptorPool(VulkanDevice* InDevice, VkDescriptorT
 {
 }
 
+VulkanDescriptorPool::~VulkanDescriptorPool() {
+    vkDestroyDescriptorPool(
+        Device->GetLogicalDeviceHandle(), DescriptorPool, nullptr);
+}
+
 void VulkanDescriptorPool::CreateDescriptorPool() {
     VkDescriptorPoolSize DescriptorPoolSize {
         .type = DescriptorType,
@@ -29,24 +34,46 @@ void VulkanDescriptorPool::CreateDescriptorPool() {
 
 void VulkanDescriptorPool::Destroy() {
     vkDestroyDescriptorPool(Device->GetLogicalDeviceHandle(), DescriptorPool, nullptr);
+    DescriptorPool = VK_NULL_HANDLE;
 }
 
-VulkanDescriptorSet::VulkanDescriptorSet(VulkanDevice* InDevice, VulkanDescriptorPool* InPool)
+VulkanDescriptorSet::VulkanDescriptorSet(
+    VulkanDevice* InDevice, VulkanDescriptorPool* InPool, VkDescriptorSetLayout InLayout)
     : Device(InDevice)
     , DescriptorPool(InPool)
     , DescriptorSet(VK_NULL_HANDLE)
+    , Layout(InLayout)
 {   
 }
 
 void VulkanDescriptorSet::Allocate() {
+    // Just for reference
+    VkDescriptorSetLayoutBinding DescriptorSetLayoutBinding {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .pImmutableSamplers = nullptr,
+    };
+
+    VkDescriptorSetLayoutCreateInfo DescriptorSetLayoutCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = 1,
+        .pBindings = &DescriptorSetLayoutBinding,
+    };
+
     VkDescriptorSetAllocateInfo DescriptorSetAllocateInfo {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = DescriptorPool->GetHandle(),
+        .descriptorSetCount = 1,
+        .pSetLayouts = &Layout,
     };
 
-    VK_CALL(vkAllocateDescriptorSets(
-        Device->GetLogicalDeviceHandle(), &DescriptorSetAllocateInfo, &DescriptorSet));
+    // VK_CALL(vkAllocateDescriptorSets(
+    //     Device->GetLogicalDeviceHandle(), &DescriptorSetAllocateInfo, &DescriptorSet));
 }
 
 void VulkanDescriptorSet::Free() {
+    VK_CALL(vkFreeDescriptorSets(
+        Device->GetLogicalDeviceHandle(), DescriptorPool->GetHandle(), 1, &DescriptorSet));
 }
