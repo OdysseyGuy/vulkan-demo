@@ -11,14 +11,14 @@ jobs:
       - run:
           name: Install CMake
           command: |
-          sudo apt update
-          sudo apt install -y cmake
+            sudo apt-get update
+            sudo apt-get install -y cmake
 
       - run:
           name: Install Vulkan
           command: |
-          sudo apt-get update
-          sudo apt-get install -y libvulkan-dev
+            sudo apt-get update
+            sudo apt-get install -y libvulkan-dev
 
       - run:
           name: Setup GCC 11
