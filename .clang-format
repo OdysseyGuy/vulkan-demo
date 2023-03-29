@@ -1,0 +1,17 @@
+Language: Cpp
+AlignArrayOfStructures: Left
+AlignConsecutiveDeclarations: Consecutive
+UseTab: Never
+IndentWidth: 4
+AccessModifierOffset: -4
+AlignConsecutiveBitFields: Consecutive
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterCaseLabel: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterExternBlock: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakConstructorInitializers: BeforeComma

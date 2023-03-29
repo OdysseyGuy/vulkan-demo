@@ -1,2 +1,4 @@
-# Build directory
+# cmake
 [Bb]uild/
+
+.vscode/

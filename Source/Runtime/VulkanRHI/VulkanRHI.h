@@ -6,23 +6,24 @@
 
 class VulkanDevice;
 
-class VulkanRHI {
+class VulkanRHI
+{
 public:
     VulkanRHI();
 
     void Init();
     void Shutdown();
 
-private:    /* functions */
+private:
     void CreateInstance();
     // Select a GPU from avaliable GPUs
     void PickAndInitDevice();
 
-private:    /* variables */
-    VkInstance Instance;
-    std::vector<const char*> InstanceLayers;
-    std::vector<const char*> InstanceExtensions;
-    
+private:
+    VkInstance                instance;
+    std::vector<const char *> instanceLayers;
+    std::vector<const char *> instanceExtensions;
+
     // Logical device for selected GPU
-    VulkanDevice* Device;
+    VulkanDevice *device;
 };

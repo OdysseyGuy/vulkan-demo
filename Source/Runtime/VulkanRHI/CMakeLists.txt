@@ -9,6 +9,7 @@ add_executable( vulkan-demo
   VulkanPipeline.cpp
   VulkanRHI.cpp
   VulkanCommandBuffer.cpp
+  VulkanDescriptorSet.cpp
   VulkanResource.cpp
 )
 
@@ -16,4 +17,4 @@ add_executable( vulkan-demo
 # Additional libraries
 #----------------------------------
 
-target_link_libraries( vulkan-demo dl )
+target_link_libraries(vulkan-demo dl)
