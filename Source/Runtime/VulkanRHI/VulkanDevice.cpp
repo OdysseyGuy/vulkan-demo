@@ -25,10 +25,8 @@ void VulkanDevice::CreateDevice()
     uint32_t queueFamilyCount;
     vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyCount, nullptr);
 
-    std::vector<VkQueueFamilyProperties> queueFamilyProperties(
-        queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyCount,
-                                             queueFamilyProperties.data());
+    std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyCount, queueFamilyProperties.data());
 
     // Create Queue Infos Per Queue Family
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos(queueFamilyCount);
@@ -38,17 +36,14 @@ void VulkanDevice::CreateDevice()
 
     uint32_t totalQueueCount = 0;
 
-    for (uint32_t familyIndex = 0;
-         familyIndex < (uint32_t)queueFamilyProperties.size(); ++familyIndex) {
-        const VkQueueFamilyProperties &CurrProps =
-            queueFamilyProperties[familyIndex];
+    for (uint32_t familyIndex = 0; familyIndex < (uint32_t)queueFamilyProperties.size();
+         ++familyIndex) {
+        const VkQueueFamilyProperties &CurrProps = queueFamilyProperties[familyIndex];
 
-        if (queueFamilyProperties[familyIndex].queueFlags &
-            VK_QUEUE_GRAPHICS_BIT) {
+        if (queueFamilyProperties[familyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             graphicsQueueFamilyIndex = familyIndex;
         }
-        if (queueFamilyProperties[familyIndex].queueFlags &
-            VK_QUEUE_COMPUTE_BIT) {
+        if (queueFamilyProperties[familyIndex].queueFlags & VK_QUEUE_COMPUTE_BIT) {
             computeQueueFamilyIndex = familyIndex;
         }
 
@@ -64,18 +59,16 @@ void VulkanDevice::CreateDevice()
 
     // set queue priorities
     std::vector<float> queuePriorities(totalQueueCount);
-    float             *currentPriority = queuePriorities.data();
+    float *currentPriority = queuePriorities.data();
 
-    for (uint32_t Index = 0; Index < (uint32_t)queueCreateInfos.size();
-         ++Index) {
+    for (uint32_t Index = 0; Index < (uint32_t)queueCreateInfos.size(); ++Index) {
         VkDeviceQueueCreateInfo &createInfo = queueCreateInfos[Index];
         createInfo.pQueuePriorities = currentPriority;
 
         VkQueueFamilyProperties &CurrProps = queueFamilyProperties[Index];
 
         /* set all of them to 1.0f */
-        for (uint32_t CurrentQueueIndex = 0;
-             CurrentQueueIndex < (uint32_t)CurrProps.queueCount;
+        for (uint32_t CurrentQueueIndex = 0; CurrentQueueIndex < (uint32_t)CurrProps.queueCount;
              ++CurrentQueueIndex) {
             *(currentPriority++) = 1.0f;
         }
@@ -97,11 +90,13 @@ void VulkanDevice::CreateDevice()
     vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
     vkGetDeviceQueue(device, computeQueueFamilyIndex, 0, &computeQueue);
 
-    descriptorPool =
-        new VulkanDescriptorPool(this, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    descriptorPool = new VulkanDescriptorPool(this, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
 }
 
-void VulkanDevice::WaitUntilIdle() { VK_CALL(vkDeviceWaitIdle(device)); }
+void VulkanDevice::WaitUntilIdle()
+{
+    VK_CALL(vkDeviceWaitIdle(device));
+}
 
 void VulkanDevice::Destroy()
 {
@@ -109,14 +104,12 @@ void VulkanDevice::Destroy()
     device = VK_NULL_HANDLE;
 }
 
-int32_t
-FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties gpuMemoryProperties,
-                    uint32_t                         memoryTypeBitsRequirement,
-                    VkMemoryPropertyFlags            propertiesRequirement)
+int32_t FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties gpuMemoryProperties,
+                            uint32_t memoryTypeBitsRequirement,
+                            VkMemoryPropertyFlags propertiesRequirement)
 {
     const uint32_t memoryTypeCount = gpuMemoryProperties.memoryTypeCount;
-    for (uint32_t memoryIndex = 0; memoryIndex < memoryTypeCount;
-         ++memoryIndex) {
+    for (uint32_t memoryIndex = 0; memoryIndex < memoryTypeCount; ++memoryIndex) {
         uint32_t MemoryTypeBits = (1 << memoryIndex);
 
         /* look for required property flags */
@@ -125,8 +118,7 @@ FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties gpuMemoryProperties,
 
         /* is required memory type and has required properties */
         if ((MemoryTypeBits & memoryTypeBitsRequirement) &&
-            (propertiesFlags & propertiesRequirement) ==
-                propertiesRequirement) {
+            (propertiesFlags & propertiesRequirement) == propertiesRequirement) {
             return static_cast<int32_t>(memoryIndex);
         }
     }
@@ -134,14 +126,11 @@ FindMemoryTypeIndex(VkPhysicalDeviceMemoryProperties gpuMemoryProperties,
     return -1;
 }
 
-void VulkanDevice::AllocateDeviceMemory(VkDeviceMemory deviceMemory,
-                                        VkFlags        flags)
+void VulkanDevice::AllocateDeviceMemory(VkDeviceMemory deviceMemory, VkFlags flags)
 {
-
     VkMemoryAllocateInfo memoryAllocateInfo{
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
     };
 
-    VK_CALL(
-        vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory));
+    VK_CALL(vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory));
 }

@@ -7,8 +7,7 @@ class VulkanDevice;
 class VulkanBuffer
 {
 public:
-    VulkanBuffer(VulkanDevice *Device, uint32_t Size,
-                 VkBufferUsageFlags UsageFlags);
+    VulkanBuffer(VulkanDevice *Device, uint32_t Size, VkBufferUsageFlags UsageFlags);
 
 private:
     // Creates a buffer and allocates memory for it
@@ -22,12 +21,13 @@ private:
     // Device memory allocation for this buffer
     VkDeviceMemory deviceMemory;
 
-    uint32_t           size;       // Buffer allocation size
+    uint32_t size;                 // Buffer allocation size
     VkBufferUsageFlags usageFlags; // Usage flags for device memory allocation
 };
 
 /*
- * https://arm-software.github.io/vulkan_best_practice_for_mobile_developers/samples/performance/layout_transitions/layout_transitions_tutorial.html
+ * https://arm-software.github.io/vulkan_best_practice_for_mobile_developers/samples/performance
+ * layout_transitions/layout_transitions_tutorial.html
  */
 
 class VulkanImage
@@ -43,7 +43,7 @@ private:
 
     uint32_t width, height;
 
-    VkImage     handle;
+    VkImage handle;
     VkImageView view;
 
     // Device memory allocation

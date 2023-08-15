@@ -9,32 +9,36 @@
 
 class VulkanDevice;
 
-struct VulkanGraphicsPipelineStateDesc {
+struct VulkanGraphicsPipelineStateDesc
+{
     /* Input Assembly state */
     VkPrimitiveTopology topology;
 
     /* Rasterizer */
-    VkPolygonMode   polygonMode;
+    VkPolygonMode polygonMode;
     VkCullModeFlags cullMode;
-    float           depthBiasSlopeFactor;
-    float           depthBiasConstantFactor;
+    float depthBiasSlopeFactor;
+    float depthBiasConstantFactor;
 
     /* Depth Stencil */
-    VkCompareOp      depthCompareOp;
+    VkCompareOp depthCompareOp;
     VkStencilOpState front;
     VkStencilOpState back;
-    bool             depthTestEnable;
-    bool             depthWriteEnable;
-    bool             stencilTestEnable;
-    bool             depthBoundsTestEnable;
+    bool depthTestEnable;
+    bool depthWriteEnable;
+    bool stencilTestEnable;
+    bool depthBoundsTestEnable;
 };
 
 // TODO: Implement PSO cache
 class VulkanPipelineStateCache
 {
 public:
-    void Load(); /* Load from disk */
-    void Save(); /* Saves to disk */
+    /** Load from disk */
+    void Load();
+    /** Saves to disk */
+    void Save();
+
 private:
     VkPipelineCache pipelineCache;
 };
@@ -52,10 +56,10 @@ private:
     VulkanDevice *device;
 
     VkPipeline pipeline;
-    /* descriptor set layouts + push constant ranges */
+    /** Descriptor set layouts + push constant ranges */
     VkPipelineLayout pipelineLayout;
 
-    // Shader modules per Pipeline shader stage
+    /** Shader modules per Pipeline shader stage */
     VkShaderModule shaderStageModules[ShaderStage::Num];
 
     VulkanGraphicsPipelineStateDesc desc;
@@ -72,11 +76,11 @@ private:
 private:
     VulkanDevice *device;
 
-    VkPipeline       pipeline;
+    VkPipeline pipeline;
     VkPipelineLayout pipelineLayout;
 
-    // Compute shader bindings
-    VkDescriptorSet       descriptorSet;
+    /** Compute shader bindings */
+    VkDescriptorSet descriptorSet;
     VkDescriptorSetLayout descriptorSetLayout; /* binding layout */
 
     VkShaderModule computeShaderModule;

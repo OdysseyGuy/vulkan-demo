@@ -2,8 +2,7 @@
 #include "VulkanCore.h"
 #include "VulkanDevice.h"
 
-VulkanCommandPool::VulkanCommandPool(VulkanDevice *inDevice,
-                                     uint32_t      inQueueFamilyIndex)
+VulkanCommandPool::VulkanCommandPool(VulkanDevice *inDevice, uint32_t inQueueFamilyIndex)
     : device(inDevice)
     , queueFamilyIndex(inQueueFamilyIndex)
     , commandPool(VK_NULL_HANDLE)
@@ -17,18 +16,16 @@ void VulkanCommandPool::CreateCommandPool()
         .queueFamilyIndex = queueFamilyIndex,
     };
 
-    VK_CALL(vkCreateCommandPool(device->GetLogicalDeviceHandle(),
-                                &cmdPoolCreateInfo, nullptr, &commandPool));
+    VK_CALL(vkCreateCommandPool(device->GetLogicalDeviceHandle(), &cmdPoolCreateInfo, nullptr,
+                                &commandPool));
 }
 
 void VulkanCommandPool::Destroy()
 {
-    vkDestroyCommandPool(device->GetLogicalDeviceHandle(), commandPool,
-                         nullptr);
+    vkDestroyCommandPool(device->GetLogicalDeviceHandle(), commandPool, nullptr);
 }
 
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice      *inDevice,
-                                         VulkanCommandPool *inCommandPool)
+VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice *inDevice, VulkanCommandPool *inCommandPool)
     : device(inDevice)
     , commandPool(inCommandPool)
     , commandBuffer(VK_NULL_HANDLE)
@@ -44,15 +41,14 @@ void VulkanCommandBuffer::Allocate()
         .commandBufferCount = 1,
     };
 
-    VK_CALL(vkAllocateCommandBuffers(device->GetLogicalDeviceHandle(),
-                                     &commandBufferAllocateInfo,
+    VK_CALL(vkAllocateCommandBuffers(device->GetLogicalDeviceHandle(), &commandBufferAllocateInfo,
                                      &commandBuffer));
 }
 
 void VulkanCommandBuffer::Free()
 {
-    vkFreeCommandBuffers(device->GetLogicalDeviceHandle(),
-                         commandPool->GetHandle(), 1, &commandBuffer);
+    vkFreeCommandBuffers(device->GetLogicalDeviceHandle(), commandPool->GetHandle(), 1,
+                         &commandBuffer);
 }
 
 void VulkanCommandBuffer::Begin()
@@ -64,6 +60,12 @@ void VulkanCommandBuffer::Begin()
     VK_CALL(vkBeginCommandBuffer(commandBuffer, &cmdBufBeginInfo));
 }
 
-void VulkanCommandBuffer::End() { VK_CALL(vkEndCommandBuffer(commandBuffer)); }
+void VulkanCommandBuffer::End()
+{
+    VK_CALL(vkEndCommandBuffer(commandBuffer));
+}
 
-void VulkanCommandBuffer::Submit(VkQueue Queue) {}
+void VulkanCommandBuffer::Submit(VkQueue Queue)
+{
+    // VkSubmitInfo2 submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2};
+}

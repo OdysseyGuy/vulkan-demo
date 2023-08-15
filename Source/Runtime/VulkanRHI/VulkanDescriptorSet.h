@@ -9,7 +9,8 @@
 
 class VulkanDevice;
 
-struct VulkanDescriptorSetInfo {
+struct VulkanDescriptorSetInfo
+{
 };
 
 class VulkanDescriptorSetLayoutDesc
@@ -20,11 +21,13 @@ public:
 class VulkanDescriptorPool
 {
 public:
-    VulkanDescriptorPool(VulkanDevice *device, VkDescriptorType type,
-                         uint32_t count);
+    VulkanDescriptorPool(VulkanDevice *device, VkDescriptorType type, uint32_t count);
     ~VulkanDescriptorPool();
 
-    VkDescriptorPool GetHandle() { return descriptorPool; }
+    VkDescriptorPool GetHandle()
+    {
+        return descriptorPool;
+    }
 
     void CreateDescriptorPool();
     void Destroy();
@@ -34,24 +37,23 @@ private:
 
     VkDescriptorPool descriptorPool;
     VkDescriptorType descriptorType;
-    uint32_t         descriptorCount;
+    uint32_t descriptorCount;
 };
 
 class VulkanDescriptorSet
 {
 public:
-    VulkanDescriptorSet(VulkanDevice         *device,
-                        VulkanDescriptorPool *descriptorPool,
+    VulkanDescriptorSet(VulkanDevice *device, VulkanDescriptorPool *descriptorPool,
                         VkDescriptorSetLayout layout);
 
     void Allocate();
     void Free();
 
 private:
-    VulkanDevice         *device;
+    VulkanDevice *device;
     VulkanDescriptorPool *descriptorPool;
 
-    VkDescriptorSet              descriptorSet;
+    VkDescriptorSet descriptorSet;
     VkDescriptorSetLayoutBinding binding;
-    VkDescriptorSetLayout        layout;
+    VkDescriptorSetLayout layout;
 };

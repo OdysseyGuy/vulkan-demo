@@ -1,4 +1,5 @@
 # cmake
-[Bb]uild/
+build/
 
 .vscode/
+.cache/

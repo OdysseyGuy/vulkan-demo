@@ -12,7 +12,10 @@ public:
     void CreateCommandPool();
     void Destroy();
 
-    VkCommandPool GetHandle() { return commandPool; }
+    VkCommandPool GetHandle()
+    {
+        return commandPool;
+    }
 
 private:
     VulkanDevice *device;
@@ -36,13 +39,19 @@ public:
     void Begin();
     void End();
 
+    void BeginRenderPass();
+    void EndRenderPass();
+
     // Submit command buffer to a Queue
     void Submit(VkQueue Queue);
 
-    VkCommandBuffer GetHandle() { return commandBuffer; }
+    VkCommandBuffer GetHandle()
+    {
+        return commandBuffer;
+    }
 
 private:
-    VulkanDevice      *device;
+    VulkanDevice *device;
     VulkanCommandPool *commandPool;
 
     VkCommandBuffer commandBuffer;

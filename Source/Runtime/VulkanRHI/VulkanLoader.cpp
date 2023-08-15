@@ -1,8 +1,7 @@
 #include "VulkanLoader.h"
 #include <dlfcn.h>
 
-#define LOAD_VK_SYMBOL(sym, lib)                                               \
-    sym = reinterpret_cast<PFN_##sym>(dlsym(lib, #sym))
+#define LOAD_VK_SYMBOL(sym, lib) sym = reinterpret_cast<PFN_##sym>(dlsym(lib, #sym))
 
 int LoadVulkanLibrary()
 {
@@ -44,6 +43,18 @@ int LoadVulkanLibrary()
     LOAD_VK_SYMBOL(vkBeginCommandBuffer, libHandle);
     LOAD_VK_SYMBOL(vkEndCommandBuffer, libHandle);
 
+    LOAD_VK_SYMBOL(vkCmdDraw, libHandle);
+    LOAD_VK_SYMBOL(vkCmdDrawIndirect, libHandle);
+    LOAD_VK_SYMBOL(vkCmdBindIndexBuffer, libHandle);
+    LOAD_VK_SYMBOL(vkCmdDrawIndexed, libHandle);
+    LOAD_VK_SYMBOL(vkCmdDrawIndexedIndirect, libHandle);
+    LOAD_VK_SYMBOL(vkCmdClearAttachments, libHandle);
+    LOAD_VK_SYMBOL(vkCmdCopyBuffer, libHandle);
+    LOAD_VK_SYMBOL(vkCmdDispatch, libHandle);
+    LOAD_VK_SYMBOL(vkCmdDispatchIndirect, libHandle);
+
+    LOAD_VK_SYMBOL(vkCreateRenderPass2, libHandle);
+
     LOAD_VK_SYMBOL(vkCreateDescriptorPool, libHandle);
     LOAD_VK_SYMBOL(vkDestroyDescriptorPool, libHandle);
 
@@ -56,45 +67,56 @@ int LoadVulkanLibrary()
     return 1;
 }
 
-PFN_vkCreateInstance  vkCreateInstance;
+PFN_vkCreateInstance vkCreateInstance;
 PFN_vkDestroyInstance vkDestroyInstance;
 
-PFN_vkEnumeratePhysicalDevices    vkEnumeratePhysicalDevices;
+PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
 PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
-PFN_vkGetPhysicalDeviceQueueFamilyProperties
-    vkGetPhysicalDeviceQueueFamilyProperties;
+PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 
-PFN_vkCreateDevice   vkCreateDevice;
-PFN_vkDestroyDevice  vkDestroyDevice;
+PFN_vkCreateDevice vkCreateDevice;
+PFN_vkDestroyDevice vkDestroyDevice;
 PFN_vkDeviceWaitIdle vkDeviceWaitIdle;
 
 PFN_vkGetDeviceQueue vkGetDeviceQueue;
 
 PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
-PFN_vkCreateComputePipelines  vkCreateComputePipelines;
-PFN_vkDestroyPipeline         vkDestroyPipeline;
+PFN_vkCreateComputePipelines vkCreateComputePipelines;
+PFN_vkDestroyPipeline vkDestroyPipeline;
 
 PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties;
 
 PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
-PFN_vkGetImageMemoryRequirements  vkGetImageMemoryRequirements;
+PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
 
 PFN_vkAllocateMemory vkAllocateMemory;
-PFN_vkFreeMemory     vkFreeMemory;
+PFN_vkFreeMemory vkFreeMemory;
 
-PFN_vkCreateCommandPool  vkCreateCommandPool;
+PFN_vkCreateCommandPool vkCreateCommandPool;
 PFN_vkDestroyCommandPool vkDestroyCommandPool;
 
 PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
-PFN_vkFreeCommandBuffers     vkFreeCommandBuffers;
-PFN_vkBeginCommandBuffer     vkBeginCommandBuffer;
-PFN_vkEndCommandBuffer       vkEndCommandBuffer;
+PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
+PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
+PFN_vkEndCommandBuffer vkEndCommandBuffer;
 
-PFN_vkCreateDescriptorPool  vkCreateDescriptorPool;
+PFN_vkCmdDraw vkCmdDraw;
+PFN_vkCmdDrawIndirect vkCmdDrawIndirect;
+PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
+PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
+PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect;
+PFN_vkCmdClearAttachments vkCmdClearAttachments;
+PFN_vkCmdCopyBuffer vkCmdCopyBuffer;
+PFN_vkCmdDispatch vkCmdDispatch;
+PFN_vkCmdDispatchIndirect vkCmdDispatchIndirect;
+
+PFN_vkCreateRenderPass2 vkCreateRenderPass2;
+
+PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
 PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
 
 PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets;
-PFN_vkFreeDescriptorSets     vkFreeDescriptorSets;
+PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 
 PFN_vkCreateBuffer vkCreateBuffer;
 

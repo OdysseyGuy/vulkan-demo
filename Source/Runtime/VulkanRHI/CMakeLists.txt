@@ -2,8 +2,7 @@
 # Demo Application
 #----------------------------------
 
-add_executable( vulkan-demo
-  main.cpp
+add_library(VulkanRHI STATIC
   VulkanLoader.cpp
   VulkanDevice.cpp
   VulkanPipeline.cpp
@@ -17,4 +16,5 @@ add_executable( vulkan-demo
 # Additional libraries
 #----------------------------------
 
-target_link_libraries(vulkan-demo dl)
+target_link_libraries(VulkanRHI dl)
+target_include_directories(VulkanRHI PUBLIC $(CMAKE_CURRENT_SOURCE_DIR))

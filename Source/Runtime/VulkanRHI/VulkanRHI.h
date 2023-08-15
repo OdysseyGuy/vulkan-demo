@@ -20,7 +20,7 @@ private:
     void PickAndInitDevice();
 
 private:
-    VkInstance                instance;
+    VkInstance instance;
     std::vector<const char *> instanceLayers;
     std::vector<const char *> instanceExtensions;
 

@@ -8,6 +8,7 @@ class VulkanDescriptorPool;
 
 /**
  * Logical Device interface to interact with Physical device.
+ * Size: ~ 1.4KiB (should I worry about storing thing in a vector)
  */
 class VulkanDevice
 {
@@ -19,21 +20,32 @@ public:
     void WaitUntilIdle();
     void Destroy();
 
-    VkQueue GetGraphicsQueue() { return graphicsQueue; }
-    VkQueue GetComputeQueue() { return computeQueue; }
+    VkQueue GetGraphicsQueue()
+    {
+        return graphicsQueue;
+    }
+    VkQueue GetComputeQueue()
+    {
+        return computeQueue;
+    }
 
-    VkDevice                   GetLogicalDeviceHandle() { return device; }
-    VkPhysicalDeviceProperties GetGpuProps() const { return gpuProps; }
+    VkDevice GetLogicalDeviceHandle()
+    {
+        return device;
+    }
+    VkPhysicalDeviceProperties GetGpuProps() const
+    {
+        return gpuProps;
+    }
 
 private:
     // TODO: Handle allocations in a sperate class
-    void AllocateDeviceMemory(VkDeviceMemory        DeviceMemory,
-                              VkMemoryAllocateFlags Flags);
+    void AllocateDeviceMemory(VkDeviceMemory DeviceMemory, VkMemoryAllocateFlags Flags);
 
 private:
     VkDevice device;
 
-    VkPhysicalDevice           gpu;
+    VkPhysicalDevice gpu;
     VkPhysicalDeviceProperties gpuProps;
 
     VkPhysicalDeviceMemoryProperties gpuMemoryProps;
