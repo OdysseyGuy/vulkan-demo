@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <memory>
 #include <functional>
 
@@ -18,150 +19,240 @@ struct MemberFunctionPtrType<true, Class, RetType(ParamTypes...)>
     typedef RetType (Class::*type)(ParamTypes...) const;
 };
 
-template <typename Signature>
+template <typename Signature, typename... ArgTypes>
 class DelegateInstanceBase;
 
-template <typename RetType, typename... ParamTypes>
-class DelegateInstanceBase<RetType(ParamTypes...)> : public IDelegateInstance
+/**
+ * Base class for all the function pointer wrappers. Holds additional payload data that can be
+ * passed with the parameters provided while invoking the underlying function.
+ */
+template <typename RetType, typename... ParamTypes, typename... ArgTypes>
+class DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...> : public IDelegateInstance
 {
 public:
-    template <typename... InParamTypes>
-    DelegateInstanceBase(InParamTypes &&...params)
-        : payload(std::forward<InParamTypes>(params)...)
+    template <typename... InArgTypes>
+    DelegateInstanceBase(InArgTypes &&...args)
+        : payload(std::forward<InArgTypes>(args)...)
     {
     }
 
+    /** Create a copy of self. */
+    virtual void CreateCopy(DelegateBase &base) const = 0;
+
+    /** Invokes the underlying function pointer. */
     virtual RetType Invoke(ParamTypes...) const = 0;
-    virtual void InvokeIfBound(ParamTypes...) const = 0;
+
+    /**
+     * Invokes the underlying function pointer only if the function pointer is bound to a valid
+     * function.
+     *
+     * @returns True if the fuction pointer was valid and return successfully.
+     */
+    virtual bool InvokeSafely(ParamTypes...) const = 0;
 
 protected:
-    std::tuple<ParamTypes...> payload;
+    std::tuple<ArgTypes...> payload;
 };
 
-template <typename Signature, typename... VarTypes>
+namespace Details {
+
+template <typename FunctionType, typename TupleType, typename... ArgTypes, std::size_t... Indices>
+constexpr decltype(auto) ApplyAfterImpl(FunctionType &&f, TupleType &&t,
+                                        std::index_sequence<Indices...>, ArgTypes &&...args)
+{
+    return std::invoke(std::forward<FunctionType>(f), std::forward<ArgTypes>(args)...,
+                       std::get<Indices>(std::forward<TupleType>(t))...);
+}
+
+} // namespace Details
+
+/**
+ * Utility function to invoke a function with provided arguments followed by the tuple of additional
+ * parameters.
+ *
+ * @returns Result of the function call.
+ */
+template <typename FunctionType, typename TupleType, typename... ArgTypes>
+constexpr decltype(auto) ApplyAfter(FunctionType &&f, TupleType &&t, ArgTypes &&...args)
+{
+    return Details::ApplyAfterImpl(
+        std::forward<FunctionType>(f), std::forward<TupleType>(t),
+        std::make_index_sequence<std::tuple_size_v<std::decay_t<TupleType>>>{},
+        std::forward<ArgTypes>(args)...);
+}
+
+template <typename Signature, typename... ArgTypes>
 class StaticDelegateInstance;
 
-template <typename RetType, typename... ParamTypes>
-class StaticDelegateInstance<RetType(ParamTypes...)>
-    : public DelegateInstanceBase<RetType(ParamTypes...)>
+/**
+ * Wrapper around a static function pointer that can be bound to a delegate.
+ */
+template <typename RetType, typename... ParamTypes, typename... ArgTypes>
+class StaticDelegateInstance<RetType(ParamTypes...), ArgTypes...>
+    : public DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>
 {
+    using Base = DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>;
+
 public:
-    using FunctionPtrType = RetType (*)(ParamTypes...);
-    using Base = DelegateInstanceBase<RetType(ParamTypes...)>;
+    using FunctionPtrType = RetType (*)(ParamTypes..., ArgTypes...);
 
-    explicit StaticDelegateInstance(FunctionPtrType inFunction)
-        : staticFunc(inFunction)
+    template <typename... InArgTypes>
+    explicit StaticDelegateInstance(FunctionPtrType function, InArgTypes &&...args)
+        : Base(std::forward<InArgTypes>(args)...)
+        , func(function)
     {
+        assert(func != nullptr);
     }
 
-    RetType Invoke(ParamTypes... params) const
+    void CreateCopy(DelegateBase &base) const final
     {
-        return std::invoke(staticFunc, params...);
+        new (base) StaticDelegateInstance(*this);
     }
 
-    void InvokeIfBound(ParamTypes... params) const
+    RetType Invoke(ParamTypes... params) const final
     {
+        return ApplyAfter(func, this->payload, params...);
+    }
+
+    bool InvokeSafely(ParamTypes... params) const final
+    {
+        (void)ApplyAfter(func, this->payload, params...);
+        return true;
     }
 
 private:
-    FunctionPtrType staticFunc;
+    FunctionPtrType func;
 };
 
-template <typename Signature, typename FunctorType>
+template <typename Signature, typename FunctorType, typename... ArgTypes>
 class FunctorDelegateInstance;
 
-template <typename RetType, typename FunctorType, typename... ParamTypes>
-class FunctorDelegateInstance<RetType(ParamTypes...), FunctorType>
-    : DelegateInstanceBase<RetType(ParamTypes...)>
+template <typename RetType, typename... ParamTypes, typename FunctorType, typename... ArgTypes>
+class FunctorDelegateInstance<RetType(ParamTypes...), FunctorType, ArgTypes...>
+    : public DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>
 {
+    static_assert(std::is_same_v<FunctorType, std::remove_reference_t<FunctorType>>,
+                  "FunctorType cannot be a reference");
+    using Base = DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>;
+
 public:
-    template <typename InFunctorType, typename... InParamTypes>
-    FunctorDelegateInstance(InFunctorType &&inFunctor, InParamTypes &&...params)
-        : functor(std::forward<InFunctorType>(inFunctor))
+    template <typename InFunctorType, typename... InArgTypes>
+    FunctorDelegateInstance(InFunctorType &&inFunctor, InArgTypes &&...args)
+        : Base(std::forward<InArgTypes>(args)...)
+        , functor(std::forward<InFunctorType>(inFunctor))
     {
     }
 
-    RetType Invoke(ParamTypes... params) const
+    void CreateCopy(DelegateBase &base) const final
     {
+        new (base) FunctorDelegateInstance(*this);
     }
 
-    void InvokeIfBound(ParamTypes... params) const
+    RetType Invoke(ParamTypes... params) const final
     {
+        return ApplyAfter(functor, this->payload, params...);
+    }
+
+    bool InvokeSafely(ParamTypes... params) const final
+    {
+        (void)ApplyAfter(functor, this->payload, params...);
+        return true;
     }
 
 private:
-    mutable typename std::remove_const<FunctorType>::type functor;
+    mutable std::remove_const_t<FunctorType> functor;
 };
 
-template <bool Const, typename Class, typename Signature>
+template <bool Const, typename Class, typename Signature, typename... ArgTypes>
 class RawMethodDelegateInstance;
 
-template <bool Const, typename Class, typename RetType, typename... ParamTypes>
-class RawMethodDelegateInstance<Const, Class, RetType(ParamTypes...)>
-    : DelegateInstanceBase<RetType(ParamTypes...)>
+template <bool Const, typename Class, typename RetType, typename... ParamTypes,
+          typename... ArgTypes>
+class RawMethodDelegateInstance<Const, Class, RetType(ParamTypes...), ArgTypes...>
+    : DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>
 {
+    using Base = DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>;
+
 public:
     using FunctionPtrType =
-        typename MemberFunctionPtrType<Const, Class, RetType(ParamTypes...)>::type;
+        typename MemberFunctionPtrType<Const, Class, RetType(ParamTypes..., ArgTypes...)>::type;
 
 public:
-    RawMethodDelegateInstance(Class *inInstance, FunctionPtrType inMethodPtr,
-                              ParamTypes &&...params)
-        : instance(inInstance)
-        , methodPtr(inMethodPtr)
+    template <typename... InArgTypes>
+    RawMethodDelegateInstance(Class *inInstance, FunctionPtrType function, InArgTypes &&...args)
+        : Base(std::forward<ArgTypes>(args)...)
+        , instance(inInstance)
+        , func(function)
     {
+        assert(func != nullptr && instance != nullptr);
     }
 
-    RetType Invoke(ParamTypes... params) const
+    void CreateCopy(DelegateBase &base) const final
     {
-        using MutableClass = typename std::remove_const<Class>::type;
-        MutableClass *mutInstance = const_cast<MutableClass *>(instance);
-        // std::invoke();
+        new (base) RawMethodDelegateInstance(*this);
     }
 
-    void InvokeIfBound(ParamTypes... params) const
+    RetType Invoke(ParamTypes... params) const final
     {
+        return ApplyAfter(func, this->payload, instance, params...);
+    }
+
+    bool InvokeSafely(ParamTypes... params) const final
+    {
+        (void)ApplyAfter(func, this->payload, instance, params...);
+        return true;
     }
 
 private:
     /** Instance on which the member function will be called. */
     Class *instance;
     /** Pointer to the original function. */
-    FunctionPtrType methodPtr;
+    FunctionPtrType func;
 };
 
-template <bool Const, typename Class, typename Signature>
+template <bool Const, typename Class, typename Signature, typename... ArgTypes>
 class SPMethodDelegateInstance;
 
-template <bool Const, typename Class, typename RetType, typename... ParamTypes>
-class SPMethodDelegateInstance<Const, Class, RetType(ParamTypes...)>
-    : DelegateInstanceBase<RetType(ParamTypes...)>
+template <bool Const, typename Class, typename RetType, typename... ParamTypes,
+          typename... ArgTypes>
+class SPMethodDelegateInstance<Const, Class, RetType(ParamTypes...), ArgTypes...>
+    : DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>
 {
-public:
-    using FunctionPtrType =
-        typename MemberFunctionPtrType<Const, Class, RetType(ParamTypes...)>::type;
+    using Base = DelegateInstanceBase<RetType(ParamTypes...), ArgTypes...>;
 
 public:
-    SPMethodDelegateInstance(const std::shared_ptr<Class> &inInstance, FunctionPtrType inMethodPtr,
-                             ParamTypes &&...params)
-        : instance(inInstance)
-        , methodPtr(inMethodPtr)
+    using FunctionPtrType =
+        typename MemberFunctionPtrType<Const, Class, RetType(ParamTypes..., ArgTypes...)>::type;
+
+public:
+    template <typename... InArgTypes>
+    SPMethodDelegateInstance(const std::shared_ptr<Class> &inInstance, FunctionPtrType function,
+                             InArgTypes &&...args)
+        : Base(std::forward<InArgTypes>(args)...)
+        , instance(inInstance)
+        , func(function)
     {
+        assert(func != nullptr);
+    }
+
+    void CreateCopy(DelegateBase &base) const final
+    {
+        new (base) SPMethodDelegateInstance(*this);
     }
 
     RetType Invoke(ParamTypes... params) const final
     {
-        // using MutableClass = std::remove_const_t<Class>;
-        // std::invoke();
+        return ApplyAfter(func, this->payload, instance, params...);
     }
 
-    void InvokeIfBound(ParamTypes... params)
+    bool InvokeSafely(ParamTypes... params)
     {
+        return false;
     }
 
 private:
     /** Instance on which the member function will be called. */
     std::weak_ptr<Class> instance;
     /** Pointer to the original function. */
-    FunctionPtrType methodPtr;
+    FunctionPtrType func;
 };

@@ -7,125 +7,184 @@ template <typename Signature>
 class Delegate;
 
 template <typename RetType, typename... ParamTypes>
-class Delegate<RetType(ParamTypes...)> : DelegateBase
+class Delegate<RetType(ParamTypes...)> : public DelegateBase
 {
     using FunctionType = RetType(ParamTypes...);
     using DelegateInstanceBaseType = DelegateInstanceBase<RetType(ParamTypes...)>;
 
 public:
-    template <typename... VarTypes>
+    template <typename... ArgTypes>
     [[nodiscard]] inline static Delegate<FunctionType>
-    CreateStatic(typename std::type_identity<FunctionType>::type inFunction, VarTypes &&...vars)
+    CreateStatic(typename StaticDelegateInstance<FunctionType,
+                                                 std::decay_t<ArgTypes>...>::FunctionPtrType func,
+                 ArgTypes &&...args)
     {
         Delegate<FunctionType> Result;
-        new (Result) StaticDelegateInstance<FunctionType>(inFunction);
+        new (Result) StaticDelegateInstance<FunctionType, std::decay_t<ArgTypes>...>(
+            func, std::forward<ArgTypes>(args)...);
         return Result;
     }
 
-    template <typename FunctorType, typename... VarTypes>
-    [[nodiscard]] inline static Delegate<FunctionType>
-    CreateLambda(typename std::type_identity<FunctionType>::type inFunction, VarTypes &&...vars)
+    template <typename FunctorType, typename... ArgTypes>
+    [[nodiscard]] inline static Delegate<FunctionType> CreateLamda(FunctorType &&functor,
+                                                                   ArgTypes &&...args)
     {
         Delegate<FunctionType> Result;
-        new (Result) FunctorDelegateInstance<FunctionType>(inFunction);
+        // references not allowed for functors
+        new (Result) FunctorDelegateInstance<FunctionType, std::remove_reference_t<FunctorType>,
+                                             std::decay_t<ArgTypes>>(
+            std::forward<FunctorType>(functor), std::forward<ArgTypes>(args)...);
         return Result;
     }
 
-    template <typename FunctorType, typename... VarTypes>
+    template <typename Class, typename... ArgTypes>
     [[nodiscard]] inline static Delegate<FunctionType>
-    CreateRaw(typename std::type_identity<FunctionType>::type inFunction, VarTypes &&...vars)
+    CreateRaw(const Class *instance,
+              typename RawMethodDelegateInstance<true, Class, FunctionType,
+                                                 std::decay_t<ArgTypes>...>::FunctionPtrType func,
+              ArgTypes &&...args)
     {
         Delegate<FunctionType> Result;
-        new (Result) RawMethodDelegateInstance<FunctionType>(inFunction);
+        new (Result)
+            RawMethodDelegateInstance<true, const Class, FunctionType, std::decay_t<ArgTypes>...>(
+                instance, func, std::forward<ArgTypes>(args)...);
         return Result;
     }
 
-    template <typename FunctorType, typename... VarTypes>
+    template <typename Class, typename... ArgTypes>
     [[nodiscard]] inline static Delegate<FunctionType>
-    CreateSP(typename std::type_identity<FunctionType>::type inFunction, VarTypes &&...vars)
+    CreateRaw(Class *instance,
+              typename RawMethodDelegateInstance<false, Class, FunctionType,
+                                                 std::decay_t<ArgTypes>...>::FunctionPtrType func,
+              ArgTypes &&...args)
     {
         Delegate<FunctionType> Result;
-        new (Result) SPMethodDelegateInstance<FunctionType>(inFunction);
+        new (Result)
+            RawMethodDelegateInstance<false, Class, FunctionType, std::decay_t<ArgTypes>...>(
+                instance, func, std::forward<ArgTypes>(args)...);
         return Result;
     }
 
 public:
-    template <typename... VarTypes>
-    inline void BindStatic(typename StaticDelegateInstance<FunctionType>::FunctionPtrType inFunc,
-                           VarTypes &&...args)
+    Delegate()
     {
-        // new (*this) StaticDelegateInstance<FunctionType, std::decay_t<VarTypes>...>(
-        //     inFunc, std::forward<VarTypes>(vars)...);
     }
 
-    template <typename FunctorType, typename... VarTypes>
-    void BindLambda(FunctorType &&functor, VarTypes &&...vars)
+    ~Delegate()
     {
-        // new (*this) FunctorDelegateInstance<FunctionType,
-        // std::remove_reference_t<FunctionType>,
-        //                                     std::decay_t<VarTypes>...>(
-        //     std::forward(functor), std::forward<VarTypes>(vars)...);
+        Unbind();
     }
 
-    template <typename Class, typename... VarTypes>
-    void BindRaw(
-        const Class *instance,
-        typename MemberFunctionPtrType<true, Class, RetType(ParamTypes...)>::FunctionPtrType inFunc,
-        VarTypes &&...vars)
+    Delegate(const Delegate &other)
     {
-        // new (*this) RawMethodDelegateInstance<true, Class, FunctionType,
-        // std::decay_t<VarTypes>...>(
-        //     instance, inFunc, std::forward<VarTypes>(vars)...);
+        *this = other;
     }
 
-    template <typename Class, typename... VarTypes>
-    void BindRaw(Class *instance,
-                 typename MemberFunctionPtrType<false, Class,
-                                                RetType(ParamTypes...)>::FunctionPtrType inFunc,
-                 VarTypes &&...vars)
+    Delegate &operator=(const Delegate &other)
     {
-        // static_assert(!std::is_const_v<Class>,
-        //               "Binding const instance to non-const member function.");
-        // new (*this)
-        //     RawMethodDelegateInstance<false, Class, FunctionType, std::decay_t<VarTypes>...>(
-        //         instance, inFunc, std::forward<VarTypes>(vars)...);
+        if (&other != this) {
+            DelegateInstanceBaseType *otherInstance =
+                (DelegateInstanceBase *)other.GetAllocatedInstance();
+            if (otherInstance != nullptr) {
+                otherInstance->CreateCopy(*this);
+            } else {
+                Unbind();
+            }
+        }
+        return *this;
     }
 
-    template <typename Class, typename... VarTypes>
-    void BindSP(
-        const std::shared_ptr<Class> &instance,
-        typename MemberFunctionPtrType<true, Class, RetType(ParamTypes...)>::FunctionPtrType inFunc,
-        VarTypes &&...vars)
+public:
+    /** Bind a static function to the delegate. */
+    template <typename... ArgTypes>
+    inline void
+    BindStatic(typename StaticDelegateInstance<FunctionType,
+                                               std::decay_t<ArgTypes>...>::FunctionPtrType func,
+               ArgTypes &&...args)
     {
-        // new (*this) spmethoddelegateinstance<true, class, functiontype,
-        // std::decay_t<vartypes>...>(
-        //     instance, infunc, std::forward<vartypes>(vars)...);
+        new (*this) StaticDelegateInstance<FunctionType, std::decay_t<ArgTypes>...>(
+            func, std::forward<ArgTypes>(args)...);
     }
 
-    template <typename Class, typename... VarTypes>
-    void BindSP(const std::shared_ptr<Class> &instance,
-                typename MemberFunctionPtrType<false, Class,
-                                               RetType(ParamTypes...)>::FunctionPtrType inFunc,
-                VarTypes &&...vars)
+    /** Bind a functor (especially lambda) to the delegate. */
+    template <typename FunctorType, typename... ArgTypes>
+    inline void BindLambda(FunctorType &&functor, ArgTypes &&...args)
     {
-        // static_assert(!std::is_const_v<Class>,
-        //               "Binding const instance to non-const member function.");
-        // new (*this) SPMethodDelegateInstance<false, Class, FunctionType,
-        // std::decay_t<VarTypes>...>(
-        //     instance, inFunc, std::forward<VarTypes>(vars)...);
+        // functor references are now allowed
+        new (*this) FunctorDelegateInstance<FunctionType, std::remove_reference_t<FunctorType>,
+                                            std::decay_t<ArgTypes>...>(
+            std::forward<FunctionType>(functor), std::forward<ArgTypes>(args)...);
     }
 
+    /** Bind a raw member function pointer to the delegate. */
+    template <typename Class, typename... ArgTypes>
+    inline void
+    BindRaw(const Class *instance,
+            typename RawMethodDelegateInstance<true, Class, RetType(ParamTypes...),
+                                               std::decay_t<ArgTypes>...>::FunctionPtrType func,
+            ArgTypes &&...args)
+    {
+        new (*this)
+            RawMethodDelegateInstance<true, const Class, FunctionType, std::decay_t<ArgTypes>...>(
+                instance, func, std::forward<ArgTypes>(args)...);
+    }
+
+    /** Bind a raw member function pointer to the delegate. */
+    template <typename Class, typename... ArgTypes>
+    inline void
+    BindRaw(Class *instance,
+            typename RawMethodDelegateInstance<false, Class, RetType(ParamTypes...),
+                                               std::decay_t<ArgTypes>...>::FunctionPtrType func,
+            ArgTypes &&...args)
+    {
+        static_assert(!std::is_const_v<Class>,
+                      "Binding const instance to non-const member function.");
+        new (*this)
+            RawMethodDelegateInstance<false, Class, FunctionType, std::decay_t<ArgTypes>...>(
+                instance, func, std::forward<ArgTypes>(args)...);
+    }
+
+    template <typename Class, typename... ArgTypes>
+    inline void
+    BindSP(const std::shared_ptr<Class> &instance,
+           typename MemberFunctionPtrType<true, Class, RetType(ParamTypes...),
+                                          std::decay_t<ArgTypes>...>::FunctionPtrType func,
+           ArgTypes &&...args)
+    {
+        new (*this)
+            SPMethodDelegateInstance<true, const Class, FunctionType, std::decay_t<ArgTypes>...>(
+                instance, func, std::forward<ArgTypes>(args)...);
+    }
+
+    template <typename Class, typename... ArgTypes>
+    inline void
+    BindSP(const std::shared_ptr<Class> &instance,
+           typename MemberFunctionPtrType<false, Class, RetType(ParamTypes...),
+                                          std::decay_t<ArgTypes>...>::FunctionPtrType func,
+           ArgTypes &&...args)
+    {
+        static_assert(!std::is_const_v<Class>,
+                      "Binding const instance to non-const member function.");
+        new (*this) SPMethodDelegateInstance<false, Class, FunctionType, std::decay_t<ArgTypes>...>(
+            instance, func, std::forward<ArgTypes>(args)...);
+    }
+
+    /** Invoke calls the underlying bound function along with the parameters passed. */
     RetType operator()(ParamTypes... params) const
     {
-        return Invoke(params...);
+        DelegateInstanceBaseType *delegateInstance =
+            (DelegateInstanceBaseType *)GetAllocatedInstance();
+        assert(delegateInstance != nullptr);
+        return delegateInstance->Invoke(params...);
     }
 
-    RetType Invoke(ParamTypes... params) const
+    bool InvokeSafely(ParamTypes... params) const
     {
-        DelegateInstanceBaseType *delegateInstane =
-            (DelegateInstanceBaseType *)GetAllocatedInstance();
-        assert(delegateInstane != nullptr);
-        return delegateInstane->Invoke(params...);
+        if (DelegateInstanceBaseType *delegateInstance =
+                (DelegateInstanceBaseType *)GetAllocatedInstance) {
+            return delegateInstance->InvokeSafely(params...);
+        }
+        return false;
     }
 };
 
@@ -135,28 +194,57 @@ class MulticastDelegate : public MulticastDelegateBase
 public:
     using DelegateType = Delegate<void(ParamTypes...)>;
     using BaseType = MulticastDelegateBase;
-    using DelegateInstanceBaseTypes = DelegateInstanceBase<void(ParamTypes...)>;
+    using DelegateInstanceBaseType = DelegateInstanceBase<void(ParamTypes...)>;
 
 public:
-    void Add(DelegateType &inDelegate)
+    void Add(const DelegateType &delegate)
     {
+        BaseType::AddDelegateInstance(delegate);
     }
 
-    void Add(DelegateType &&inDelegate)
+    void Add(DelegateType &&delegate)
     {
+        BaseType::AddDelegateInstance(std::move(delegate));
     }
 
-    void Remove()
+    template <typename... ArgTypes>
+    void AddStatic(typename StaticDelegateInstance<void(ParamTypes...),
+                                                   std::decay_t<ArgTypes>...>::FunctionPtrType func,
+                   ArgTypes &&...args)
     {
+        Add(DelegateType::CreateStatic(func, std::forward<ArgTypes>(args)...));
     }
 
+    template <typename FunctorType, typename... ArgTypes>
+    void AddLamda(FunctorType &&functor, ArgTypes &&...args)
+    {
+        Add(DelegateType::CreateLambda(std::forward<FunctorType>(functor),
+                                       std::forward<ArgTypes>(args)...));
+    }
+
+    template <typename Class, typename... ArgTypes>
+    void AddRaw(const Class *instance,
+                typename RawMethodDelegateInstance<true, Class, void(ParamTypes...),
+                                                   std::decay_t<ArgTypes>...>::FunctionPtrType func,
+                ArgTypes &&...args)
+    {
+        Add(DelegateType::CreateRaw(instance, func, std::forward<ArgTypes>(args)...));
+    }
+
+    template <typename Class, typename... ArgTypes>
+    void AddRaw(Class *instance,
+                typename RawMethodDelegateInstance<false, Class, void(ParamTypes...),
+                                                   std::decay_t<ArgTypes>...>::FunctionPtrType func,
+                ArgTypes &&...args)
+    {
+        static_assert(!std::is_const_v<Class>,
+                      "Binding const instance to non-const member function.");
+        Add(DelegateType::CreateRaw(instance, func, std::forward<ArgTypes>(args)...));
+    }
+
+    /** Invokes all the bound objects. */
     void operator()(ParamTypes... params) const
     {
-    }
-
-    MulticastDelegate &operator=(const MulticastDelegate &other)
-    {
-        if (&other != this) {}
-        return *this;
+        BaseType::template Invoke<DelegateInstanceBaseType, ParamTypes...>(params...);
     }
 };
