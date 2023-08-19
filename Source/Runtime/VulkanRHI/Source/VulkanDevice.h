@@ -24,6 +24,7 @@ public:
     {
         return graphicsQueue;
     }
+
     VkQueue GetComputeQueue()
     {
         return computeQueue;
@@ -33,6 +34,12 @@ public:
     {
         return device;
     }
+
+    VkPhysicalDevice GetPhysicalDeviceHandle()
+    {
+        return gpu;
+    }
+
     VkPhysicalDeviceProperties GetGpuProps() const
     {
         return gpuProps;
