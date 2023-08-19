@@ -15,8 +15,9 @@ class Delegate<RetType(ParamTypes...)> : public DelegateBase
 public:
     template <typename... ArgTypes>
     [[nodiscard]] inline static Delegate<FunctionType>
-    CreateStatic(typename StaticDelegateInstance<FunctionType,
-                                                 std::decay_t<ArgTypes>...>::FunctionPtrType func,
+    CreateStatic(std::type_identity_t<typename StaticDelegateInstance<
+                     FunctionType, std::decay_t<ArgTypes>...>::FunctionPtrType>
+                     func,
                  ArgTypes &&...args)
     {
         Delegate<FunctionType> Result;
@@ -32,7 +33,7 @@ public:
         Delegate<FunctionType> Result;
         // references not allowed for functors
         new (Result) FunctorDelegateInstance<FunctionType, std::remove_reference_t<FunctorType>,
-                                             std::decay_t<ArgTypes>>(
+                                             std::decay_t<ArgTypes>...>(
             std::forward<FunctorType>(functor), std::forward<ArgTypes>(args)...);
         return Result;
     }
@@ -84,7 +85,7 @@ public:
     {
         if (&other != this) {
             DelegateInstanceBaseType *otherInstance =
-                (DelegateInstanceBase *)other.GetAllocatedInstance();
+                (DelegateInstanceBaseType *)other.GetAllocatedInstance();
             if (otherInstance != nullptr) {
                 otherInstance->CreateCopy(*this);
             } else {

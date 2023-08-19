@@ -3,7 +3,7 @@
 #----------------------------------
 
 add_executable(vulkan-demo
-  Entry.cpp
+  Source/Entry.cpp
 )
 
 #----------------------------------

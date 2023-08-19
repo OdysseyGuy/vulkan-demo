@@ -25,7 +25,7 @@ bool LinuxPlatform::InitSDL()
 
 bool LinuxPlatform::CopyToClipboard(const char *data)
 {
-    if (SDL_WasInit() && SDL_SetClipboardText(data)) {
+    if (SDL_WasInit(SDL_INIT_VIDEO) && SDL_SetClipboardText(data)) {
         return false;
     }
 }

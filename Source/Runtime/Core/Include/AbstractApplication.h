@@ -75,8 +75,8 @@ public:
     {
     }
 
-    virtual void CreateWindow(AbstractWindow *window, const WindowInitializer &initializer,
-                              AbstractWindow *parent) = 0;
+    virtual std::shared_ptr<AbstractWindow> CreateWindow(const WindowProps &props,
+                                                         AbstractWindow *parent) = 0;
 
 private:
     std::shared_ptr<AbstractApplicationEventHandler> eventHandler;

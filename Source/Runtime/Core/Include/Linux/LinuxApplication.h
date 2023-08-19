@@ -7,11 +7,11 @@
 class LinuxApplication : public AbstractApplication
 {
 public:
-    virtual void CreateWindow(AbstractWindow *window, const WindowInitializer &initializer,
-                              AbstractWindow *parent) override;
-
     /** Searches for a window by their handles. */
     std::shared_ptr<LinuxWindow> GetWindowFromHandle(SDL_Window *handle);
+
+    virtual std::shared_ptr<AbstractWindow> CreateWindow(const WindowProps &initializer,
+                                                         AbstractWindow *parent) override;
 
     static LinuxApplication *CreateLinuxApplication();
 

@@ -14,10 +14,11 @@ enum WindowType {
 };
 
 /** Data required to initialize a window. */
-struct WindowInitializer
+struct WindowProps
 {
     char *title;
     uint32_t height, width;
+    uint32_t x, y;
     uint32_t hints;
     WindowType type;
 };
@@ -41,29 +42,13 @@ public:
     virtual void Show() = 0;
     /** Interface method to hide the window. */
     virtual void Hide() = 0;
-
     /** Interface method to close the window. */
     virtual void Close() = 0;
 
-    bool IsVisible() const
-    {
-        return visible;
-    }
-
-    bool IsMaximized() const
-    {
-        return visible;
-    }
-
-    bool IsMinimized() const
-    {
-        return visible;
-    }
+    virtual bool IsVisible() const = 0;
+    virtual bool IsMaximized() const = 0;
+    virtual bool IsMinimized() const = 0;
 
     /** Interface to method to retrieve implementation handle. */
     virtual void *GetNativeHandle() = 0;
-
-private:
-    uint32_t height, width;
-    bool visible;
 };

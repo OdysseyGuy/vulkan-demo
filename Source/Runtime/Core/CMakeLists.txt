@@ -3,15 +3,13 @@
 #----------------------------------
 
 add_library(Core STATIC
-    Linux/LinuxApplication.cpp
-    Linux/LinuxWindow.cpp
+    Source/Linux/LinuxApplication.cpp
+    Source/Linux/LinuxWindow.cpp
+    Source/Linux/LinuxPlatform.cpp
 )
 
-#----------------------------------
-# Additional libraries
-#----------------------------------
-
-target_include_directories(Core PUBLIC $(CMAKE_CURRENT_SOURCE_DIR))
+target_include_directories(Core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+target_include_directories(Core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 #----------------------------------
 # Platform-specific configurations

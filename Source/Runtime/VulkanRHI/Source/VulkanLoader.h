@@ -1,9 +1,7 @@
 #pragma once
 
 #define VK_NO_PROTOTYPES 1
-#include <vulkan/vulkan.h>
-
-int LoadVulkanLibrary();
+#include "vulkan/vulkan.h"
 
 // Instance
 extern PFN_vkCreateInstance vkCreateInstance;
@@ -75,3 +73,9 @@ extern PFN_vkCreateBuffer vkCreateBuffer;
 
 // Images
 extern PFN_vkCreateImage vkCreateImage;
+
+// Swapchain
+extern PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR vkGetPhysicalDeviceSurfaceCapabilities2KHR;
+extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
+extern PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+extern PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;

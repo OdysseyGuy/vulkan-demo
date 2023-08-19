@@ -64,6 +64,11 @@ int LoadVulkanLibrary()
     LOAD_VK_SYMBOL(vkCreateBuffer, libHandle);
     LOAD_VK_SYMBOL(vkCreateImage, libHandle);
 
+    LOAD_VK_SYMBOL(vkGetPhysicalDeviceSurfaceCapabilities2KHR, libHandle);
+    LOAD_VK_SYMBOL(vkGetPhysicalDeviceSurfaceSupportKHR, libHandle);
+    LOAD_VK_SYMBOL(vkCreateSwapchainKHR, libHandle);
+    LOAD_VK_SYMBOL(vkGetSwapchainImagesKHR, libHandle);
+
     return 1;
 }
 
@@ -121,3 +126,8 @@ PFN_vkFreeDescriptorSets vkFreeDescriptorSets;
 PFN_vkCreateBuffer vkCreateBuffer;
 
 PFN_vkCreateImage vkCreateImage;
+
+PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR vkGetPhysicalDeviceSurfaceCapabilities2KHR;
+PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
+PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;

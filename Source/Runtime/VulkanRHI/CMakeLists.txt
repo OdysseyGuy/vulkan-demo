@@ -3,18 +3,27 @@
 #----------------------------------
 
 add_library(VulkanRHI STATIC
-  VulkanLoader.cpp
-  VulkanDevice.cpp
-  VulkanPipeline.cpp
-  VulkanRHI.cpp
-  VulkanCommandBuffer.cpp
-  VulkanDescriptorSet.cpp
-  VulkanResource.cpp
+    Source/VulkanLoader.cpp
+    Source/VulkanDevice.cpp
+    Source/VulkanPipeline.cpp
+    Source/VulkanRHI.cpp
+    Source/VulkanCommandBuffer.cpp
+    Source/VulkanDescriptorSet.cpp
+    Source/VulkanResource.cpp
+    Source/VulkanSwapchain.cpp
+    Source/Linux/VulkanLinux.cpp
 )
 
+target_include_directories(VulkanRHI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+target_link_libraries(VulkanRHI Core)
+
 #----------------------------------
-# Additional libraries
+# Platform-specific configurations
 #----------------------------------
 
-target_link_libraries(VulkanRHI dl)
-target_include_directories(VulkanRHI PUBLIC $(CMAKE_CURRENT_SOURCE_DIR))
+if (UNIX)
+    target_link_libraries(VulkanRHI dl)
+    target_include_directories(VulkanRHI PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Source/Linux)
+elseif (WIN32)
+
+endif()
